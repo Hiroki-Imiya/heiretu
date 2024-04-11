@@ -30,17 +30,8 @@ void f(void){
         //現在の時間を開始時間に設定
         s_Time=T_GetTime();
 
-        //以下を100回繰り返す
-
-        while(cnt<100){
-            //配列をプロセス1に送信
-            T_Send(1,a,N);
-
-            //配列をプロセス1から受信
-            T_Recv(1,a,N);
-
-            cnt++;
-        }
+        //その他のプロセスに配列aをブロードキャスト
+        T_Bcast(0,a,N);
 
         //現在の時間を終了時間に設定
         e_Time=T_GetTime();
@@ -48,20 +39,13 @@ void f(void){
         //経過時間を出力
         fprintf(fp,"Time=%f | N : %d\n",e_Time-s_Time,N);
 
-    }else if(myrank==1){
-        //プロセス1のみ実行
+    }else {
+        //その他のプロセスのみ実行
         //n個の整数を格納する配列を宣言
         int b[N];
 
-        //以下を100回繰り返す
-        while(cnt<100){
-            //配列をプロセス0から受信
-            T_Recv(0,b,N);
-            //受信した配列をプロセス0に送信
-            T_Send(0,b,N);
-
-            cnt++;
-        }
+        //0番プロセスからのブロードキャストを受信
+        T_Bcast(0,b,N);
     }
     return;
 }
