@@ -7,8 +7,10 @@
 void f(void){
     int i;
 
+    int cnt=0;
+
     //出力先のファイルをオープン
-    FILE *fp=fopen("kadai01-2.txt","a");
+    FILE *fp=fopen("kadai01-5.txt","a");
 
     //実行時間を計測する用の変数
     double s_Time=0,e_Time=0;
@@ -18,21 +20,25 @@ void f(void){
 
     if(myrank==0){
         //プロセス0のみ実行
-        //n個の整数を格納する配列を宣言
-        int a[N];
-        //n個の整数を格納する配列に値を代入
-        for(i=0;i<N;i++){
-            a[i]=i;
-        }
+        
+        //1個の整数を宣言(仮の値として1を代入)
+        int a[1];
+        a[0]=1;
 
         //現在の時間を開始時間に設定
         s_Time=T_GetTime();
 
-        //配列をプロセス1に送信
-        T_Send(1,a,N*sizeof(int));
+        //以下をN回繰り返す
 
-        //配列をプロセス1から受信
-        T_Recv(1,a,N*sizeof(int));
+        while(cnt<N){
+            //配列をプロセス1に送信
+            T_Send(1,a,1*sizeof(int));
+
+            //配列をプロセス1から受信
+            T_Recv(1,a,1*sizeof(int));
+
+            cnt++;
+        }
 
         //現在の時間を終了時間に設定
         e_Time=T_GetTime();
@@ -43,14 +49,17 @@ void f(void){
     }else if(myrank==1){
         //プロセス1のみ実行
         //n個の整数を格納する配列を宣言
-        int b[N];
-        
-        //配列をプロセス0から受信
-        T_Recv(0,b,N*sizeof(int));
-        //受信した配列をプロセス0に送信
-        T_Send(0,b,N*sizeof(int));
+        int b[1];
 
+        //以下を100回繰り返す
+        while(cnt<N){
+            //配列をプロセス0から受信
+            T_Recv(0,b,1*sizeof(int));
+            //受信した配列をプロセス0に送信
+            T_Send(0,b,1*sizeof(int));
 
+            cnt++;
+        }
     }
     return;
 }
