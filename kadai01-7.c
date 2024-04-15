@@ -28,10 +28,10 @@ void f(void){
 
         while(cnt<100){
             //配列をプロセス1に送信
-            T_Send(1,a,N);
+            T_Send(1,a,N*sizeof(int));
 
             //配列をプロセス1から受信
-            T_Recv(1,a,N);
+            T_Recv(1,a,N*sizeof(int));
 
             cnt++;
         }
@@ -44,14 +44,15 @@ void f(void){
         //以下を100回繰り返す
         while(cnt<100){
             //受信した配列をプロセス0に送信
-            T_Send(0,b,N);
+            T_Send(0,b,N*sizeof(int));
 
             //配列をプロセス0から受信
-            T_Recv(0,b,N);
+            T_Recv(0,b,N*sizeof(int));
 
             cnt++;
         }
     }
+    fprintf(fp,"成功 N : %d\n",N);
     return;
 }
 

@@ -20,8 +20,10 @@ void f(void){
 
     if(myrank==0){
         //プロセス0のみ実行
+        
         //1個の整数を宣言(仮の値として1を代入)
-        int a=1;
+        int a[1];
+        a[0]=1;
 
         //現在の時間を開始時間に設定
         s_Time=T_GetTime();
@@ -30,10 +32,10 @@ void f(void){
 
         while(cnt<N){
             //配列をプロセス1に送信
-            T_Send(1,a,N);
+            T_Send(1,a,1*sizeof(int));
 
             //配列をプロセス1から受信
-            T_Recv(1,a,N);
+            T_Recv(1,a,1*sizeof(int));
 
             cnt++;
         }
@@ -47,14 +49,14 @@ void f(void){
     }else if(myrank==1){
         //プロセス1のみ実行
         //n個の整数を格納する配列を宣言
-        int b[N];
+        int b[1];
 
         //以下を100回繰り返す
         while(cnt<N){
             //配列をプロセス0から受信
-            T_Recv(0,b,N);
+            T_Recv(0,b,1*sizeof(int));
             //受信した配列をプロセス0に送信
-            T_Send(0,b,N);
+            T_Send(0,b,1*sizeof(int));
 
             cnt++;
         }
