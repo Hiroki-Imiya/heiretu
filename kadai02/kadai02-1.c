@@ -34,8 +34,10 @@ int main(void){
         printf("\n");
     }
 
-    //行列積の計算
+    //行列積の計算後の行列
     double c[N][N];
+
+    //行列積の計算
     matrix_product(a, a, c);
 
     //結果の表示
