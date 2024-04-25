@@ -5,10 +5,16 @@
 
 //行列積を計算する関数
 void matrix_product(double a[N][N], double b[N][N], double c[N][N]){
-    for(int i=0; i<N; i++){
-        for(int j=0; j<N; j++){
-            c[i][j] = 0;
-            for(int k=0; k<N; k++){
+
+    //for文用の変数宣言
+    int i;
+    int j;
+    int k;
+
+    //行列積を計算
+    for(j=0; j<N; j++){
+        for(k=0; k<N; k++){
+            for(i=0; i<N; i++){
                 c[i][j] += a[i][k] * b[k][j];
             }
         }
