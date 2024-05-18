@@ -3,7 +3,7 @@
 #include<ppexp.h>
 
 //使用するプロセス数
-#define PNUM 1
+#define PNUM 2
 
 //画像の横幅
 #define WID 1024
@@ -35,18 +35,35 @@ void f(void){
     int myrank = T_GetMyNum();
 
     //グレー画像情報
-    uchar g[HEI][WID];
+    uchar g[HEI_PNUM][WID];
+
+    //結果表示用の画像情報
+    uchar result[HEI][WID];
 
     //for文用の変数(y軸,x軸)
     int y,x;
 
+    //受信したプロセス数
+    int recv_count=0;
+
+    //実行時間計測用の変数
+    double start,end;
+
+    //他のプロセスと同期
+    T_Barrier();
+
+    //プロセス0のみ計測開始
+    if(myrank==0){
+        start = T_GetTime();
+    }
+
     //Mandelbrot集合の描画
-    for(y=myrank*HEI_PNUM;y<(myrank+1)*HEI_PNUM;y++){
+    for(y=0;y<HEI_PNUM;y++){
         for(x=0;x<WID;x++){
             //実部
             double a = MIN_A + RANGE_A*(double)x/(double)WID;
             //虚部
-            double b = MIN_B + RANGE_B*(double)y/(double)HEI;
+            double b = MIN_B + RANGE_B*(double)(y+myrank*HEI_PNUM)/(double)HEI;
             //zの実部
             double zr = 0.0;
             //zの虚部
@@ -80,8 +97,47 @@ void f(void){
         }
     }
 
-    //グレー画像の表示(ファイル名=grey.xmp)
-    generate_pgm(&g[0][0],WID,HEI,"grey-2.xmp");
+    //他のプロセスと同期
+    T_Barrier();
+
+    //プロセス0のみ実行
+    if(myrank==0){
+
+        //実行時間計測終了
+        end = T_GetTime();
+        printf("time=%f\n",end-start);
+        //結果表示用の画像情報にグレー画像情報をコピー
+        for(y=0;y<HEI_PNUM;y++){
+            for(x=0;x<WID;x++){
+                result[y][x]=g[y][x];
+            }
+        }
+
+        //他のプロセスからの結果を受信
+        while(recv_count<PNUM-1){
+            //受信用のバッファ
+            uchar recv[HEI_PNUM][WID];
+
+            //受信
+            int from = T_Recv(T_ANY_NUM,&recv[0][0],HEI_PNUM*WID*sizeof(uchar));
+
+            //結果表示用の画像情報に受信したグレー画像情報をコピー
+            for(y=from*HEI_PNUM;y<(from+1)*HEI_PNUM;y++){
+                for(x=0;x<WID;x++){
+                    result[y][x]=recv[y-from*HEI_PNUM][x];
+                }
+            }
+
+            //受信したプロセス数を更新
+            recv_count++;
+        }
+
+        //グレー画像の表示(ファイル名=grey.xmp)
+        generate_pgm(&result[0][0],WID,HEI,"grey-3.xmp");
+    }else{
+        //プロセス0以外の場合、プロセス0にグレー画像情報を送信
+        T_Send(0,&g[0][0],HEI_PNUM*WID*sizeof(uchar));
+    }
 
     return;
 }
