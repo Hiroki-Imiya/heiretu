@@ -2,8 +2,8 @@
 //画像を生成するためのライブラリ
 #include<ppexp.h>
 
-//使用するプロセス数
-#define PNUM 2
+//使用するプロセス数-Dオプションで指定
+//#define PNUM 2
 
 //画像の横幅
 #define WID 1024
@@ -34,6 +34,9 @@ void f(void){
     //自身のプロセス番号を取得
     int myrank = T_GetMyNum();
 
+    //結果を保存するファイルを指定
+    FILE *fp=fopen("kadai04A-3.txt","a");
+
     //グレー画像情報
     uchar g[HEI_PNUM][WID];
 
@@ -41,7 +44,7 @@ void f(void){
     uchar result[HEI][WID];
 
     //for文用の変数(y軸,x軸)
-    int y,x;
+    int y,x,i;
 
     //受信したプロセス数
     int recv_count=0;
@@ -49,63 +52,90 @@ void f(void){
     //実行時間計測用の変数
     double start,end;
 
-    //他のプロセスと同期
-    T_Barrier();
+    //10回実行時間を保存する配列
+    double time[10];
+    //計測回数
+    int cnt=0;
 
-    //プロセス0のみ計測開始
-    if(myrank==0){
-        start = T_GetTime();
-    }
+    //10回計測する
+    while(cnt<10){
+        //他のプロセスと同期
+        T_Barrier();
 
-    //Mandelbrot集合の描画
-    for(y=0;y<HEI_PNUM;y++){
-        for(x=0;x<WID;x++){
-            //実部
-            double a = MIN_A + RANGE_A*(double)x/(double)WID;
-            //虚部
-            double b = MIN_B + RANGE_B*(double)(y+myrank*HEI_PNUM)/(double)HEI;
-            //zの実部
-            double zr = 0.0;
-            //zの虚部
-            double zi = 0.0;
-            //zの絶対値の二乗
-            double z = 0.0;
-            //繰り返し回数
-            int n = 0;
-            
-            //zの絶対値の２乗が4より小さいかつ繰り返し回数が最大繰り返し回数より小さい間繰り返す
-            while(z<4.0 && n<U){
-
-                //次のzの実部を計算
-                double zr_next = zr*zr - zi*zi - a;
-                //次のzの虚部を計算
-                double zi_next = 2.0*zr*zi - b;
-
-                //zの実部を更新
-                zr = zr_next;
-                //zの虚部を更新
-                zi = zi_next;
-                //zの絶対値の二乗を更新
-                z = zr*zr + zi*zi;
-
-                //繰り返し回数を更新
-                n++;
-            }
-
-            //グレー画像の生成
-            g[y][x]=(U-n)*255/U;
+        //プロセス0のみ計測開始
+        if(myrank==0){
+            start = T_GetTime();
         }
+
+        //Mandelbrot集合の描画
+        for(y=0;y<HEI_PNUM;y++){
+            for(x=0;x<WID;x++){
+                //実部
+                double a = MIN_A + RANGE_A*(double)x/(double)WID;
+                //虚部
+                double b = MIN_B + RANGE_B*(double)(y+myrank*HEI_PNUM)/(double)HEI;
+                //zの実部
+                double zr = 0.0;
+                //zの虚部
+                double zi = 0.0;
+                //zの絶対値の二乗
+                double z = 0.0;
+                //繰り返し回数
+                int n = 0;
+                
+                //zの絶対値の２乗が4より小さいかつ繰り返し回数が最大繰り返し回数より小さい間繰り返す
+                while(z<4.0 && n<U){
+
+                    //次のzの実部を計算
+                    double zr_next = zr*zr - zi*zi - a;
+                    //次のzの虚部を計算
+                    double zi_next = 2.0*zr*zi - b;
+
+                    //zの実部を更新
+                    zr = zr_next;
+                    //zの虚部を更新
+                    zi = zi_next;
+                    //zの絶対値の二乗を更新
+                    z = zr*zr + zi*zi;
+
+                    //繰り返し回数を更新
+                    n++;
+                }
+
+                //グレー画像の生成
+                g[y][x]=(U-n)*255/U;
+            }
+        }
+
+        //他のプロセスと同期
+        T_Barrier();
+
+        //プロセス0のみ計測終了
+        if(myrank==0){
+            end = T_GetTime();
+            //計測時間を保存
+            time[cnt]=end-start;
+        }
+
+        //計測回数を更新
+        cnt++;
     }
 
-    //他のプロセスと同期
-    T_Barrier();
+    //計測時間の平均を計算
+    double sum=0;
+    for(i=0;i<10;i++){
+        sum+=time[i];
+    }
+    double ave = sum/10;
+
+    //計測時間の表示
+    if(myrank==0){
+        printf("%d %f\n",PNUM,ave);
+        fprintf(fp,"%d %f\n",PNUM,ave);
+    } 
 
     //プロセス0のみ実行
     if(myrank==0){
-
-        //実行時間計測終了
-        end = T_GetTime();
-        printf("time=%f\n",end-start);
         //結果表示用の画像情報にグレー画像情報をコピー
         for(y=0;y<HEI_PNUM;y++){
             for(x=0;x<WID;x++){
