@@ -35,7 +35,7 @@ void f(void){
     int myrank = T_GetMyNum();
 
     //結果を保存するファイルを指定
-    FILE *fp=fopen("kadai04A-3.txt","a");
+    FILE *fp=fopen("kadai04A-4.txt","a");
 
     //グレー画像情報
     uchar g[HEI_PNUM][WID];
@@ -104,9 +104,6 @@ void f(void){
                 g[y][x]=(U-n)*255/U;
             }
         }
-
-        //他のプロセスと同期
-        T_Barrier();
 
         //計測終了
         end = T_GetTime();
