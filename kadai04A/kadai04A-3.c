@@ -84,7 +84,7 @@ void f(void){
                 int n = 0;
                 
                 //zの絶対値の２乗が4より小さいかつ繰り返し回数が最大繰り返し回数より小さい間繰り返す
-                while(z<4.0 && n<U){
+                while(z<=4.0 && n<U){
 
                     //次のzの実部を計算
                     double zr_next = zr*zr - zi*zi - a;
