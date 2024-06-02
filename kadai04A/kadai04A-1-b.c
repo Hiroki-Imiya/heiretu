@@ -37,37 +37,73 @@ void f(void){
     //for文用の変数(y軸,x軸)
     int y,x;
 
-    //Mandelbrot集合の描画
-    for(y=0;y<HEI;y++){
-        for(x=0;x<WID;x++){
-            //実部
-            double a = MIN_A + RANGE_A*(double)x/(double)WID;
-            //虚部
-            double b = MIN_B + RANGE_B*(double)y/(double)HEI;
-            //zの実部
-            double zr = 0.0;
-            //zの虚部
-            double zi = 0.0;
-            //zの絶対値の二乗
-            double z = 0.0;
-            //繰り返し回数
-            int n = 0;
-            
-            //zの絶対値の２乗が4より小さいかつ繰り返し回数が最大繰り返し回数より小さい間繰り返す
-            while(z<4.0 && n<U){
-                //zの更新
-                double zr_next = zr*zr - zi*zi - a;
-                double zi_next = 2.0*zr*zi - b;
-                zr = zr_next;
-                zi = zi_next;
-                z = zr*zr + zi*zi;
-                n++;
-            }
+    //実行時間を計測するための変数
+    double start,end;
 
-            //グレー画像の生成
-            g[y][x]=(U-n)*255/U;
+    //計測時間を10回保存する配列
+    double time[10];
+
+    //計測時間の平均値を保存する変数
+    double ave;
+
+    //計測した回数を保存する変数
+    int cnt=0;
+
+    //10回計測する
+    while(cnt<10){
+
+        //計測開始
+        start = T_GetTime();
+
+        //Mandelbrot集合の描画
+        for(y=0;y<HEI;y++){
+            for(x=0;x<WID;x++){
+                //実部
+                double a = MIN_A + RANGE_A*(double)x/(double)WID;
+                //虚部
+                double b = MIN_B + RANGE_B*(double)y/(double)HEI;
+                //zの実部
+                double zr = 0.0;
+                //zの虚部
+                double zi = 0.0;
+                //zの絶対値の二乗
+                double z = 0.0;
+                //繰り返し回数
+                int n = 0;
+                
+                //zの絶対値の２乗が4より小さいかつ繰り返し回数が最大繰り返し回数より小さい間繰り返す
+                while(z<4.0 && n<U){
+                    //zの更新
+                    double zr_next = zr*zr - zi*zi - a;
+                    double zi_next = 2.0*zr*zi - b;
+                    zr = zr_next;
+                    zi = zi_next;
+                    z = zr*zr + zi*zi;
+                    n++;
+                }
+
+                //グレー画像の生成
+                g[y][x]=(U-n)*255/U;
+            }
         }
+
+        //計測終了
+        end = T_GetTime();
+        //計測時間を保存
+        time[cnt]=end-start;
+        //計測回数を更新
+        cnt++;
     }
+
+    //計測時間の平均値を計算
+    ave = 0;
+    for(cnt=0;cnt<10;cnt++){
+        ave+=time[cnt];
+    }
+    ave/=10;
+
+    //計測時間の平均値を表示
+    printf("%f\n",ave);
 
     //グレー画像の表示(ファイル名=grey.xmp)
     generate_pgm(&g[0][0],WID,HEI,"grey-b.xmp");
